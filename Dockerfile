@@ -17,4 +17,4 @@ EXPOSE 5000
 
 # Production (Render / Docker): gunicorn via run:app
 # Local dev alternative: CMD ["python", "run.py"]
-CMD ["gunicorn", "--config", "gunicorn_config.py", "run:app"]
+CMD ["gunicorn", "--timeout", "120", "app:app"]
