@@ -13,6 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 
 MONGO_URI = os.getenv("MONGO_URI") or os.getenv("MONGODB_URI")
+print(f"DEBUG_INFO: MONGO_URI value is: {uri}")
 MONGO_DB_NAME = os.getenv("MONGO_DB_NAME") or os.getenv("MONGODB_DB_NAME")
 
 if not MONGO_URI:
