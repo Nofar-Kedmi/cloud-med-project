@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block body_class %}clinical-dark{% endblock %}
+
+{% block title %}Side Effects Consultation{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinical-dark.css') }}">
+
+<div class="clinical-container">
+    <div class="clinical-header">
+        <div>
+            <p class="clinical-eyebrow">Pharmacist Consultation</p>
+            <h1>Medication Side Effects</h1>
+            <p class="clinical-subtitle">Query OpenFDA and medical literature for adverse reaction information.</p>
+        </div>
+    </div>
+
+    <nav class="nav-tabs-clinical">
+        <a href="{{ url_for('pharmacist.search') }}">Patient Search</a>
+        <a href="{{ url_for('pharmacist.side_effects') }}" class="active">Side Effects</a>
+        <a href="{{ url_for('pharmacist.clinical_trials') }}">Clinical Trials</a>
+    </nav>
+
+    <section class="dark-card clinical-form">
+        <form method="get" action="{{ url_for('pharmacist.side_effects') }}">
+            <div class="form-row">
+                <label for="medication">Medication name</label>
+                <input type="text" id="medication" name="medication" value="{{ medication }}"
+                       placeholder="e.g. metformin" required>
+            </div>
+            <button type="submit" class="btn-clinical btn-clinical-primary">Check Side Effects</button>
+        </form>
+    </section>
+
+    {% if result %}
+    <section class="dark-card">
+        <h2>Results for {{ result.drug }}</h2>
+        <p class="label-dim">{{ result.message }}</p>
+
+        {% if result.available and result.details.source == 'openfda' %}
+            {% if result.details.warnings %}
+            <h3>Warnings</h3>
+            {% for item in result.details.warnings %}
+            <div class="research-item">{{ item }}</div>
+            {% endfor %}
+            {% endif %}
+            {% if result.details.adverse_reactions %}
+            <h3>Adverse Reactions</h3>
+            {% for item in result.details.adverse_reactions %}
+            <div class="research-item">{{ item }}</div>
+            {% endfor %}
+            {% endif %}
+        {% elif result.available and result.details.source == 'tavily' %}
+            {% for item in result.details.results %}
+            <div class="research-item">
+                <strong>{{ item.title }}</strong>
+                <p class="label-dim">{{ item.content }}</p>
+                {% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.url }}</a>{% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+        <p class="label-dim">No side-effect data available.</p>
+        {% endif %}
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block body_class %}clinical-dark{% endblock %}
+
+{% block title %}OCR — {{ prescription.prescription_id }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinical-dark.css') }}">
+
+<div class="clinical-container">
+    <div class="clinical-header">
+        <div>
+            <p class="clinical-eyebrow">Prescription Verification</p>
+            <h1>OCR Image Decode</h1>
+            <p class="clinical-subtitle">
+                Rx <code>{{ prescription.prescription_id }}</code>
+                · {{ prescription.medication_name }}
+                {% if patient %}
+                · Patient: {{ patient.first_name }} {{ patient.last_name }}
+                (ID: {{ patient.id_number or '—' }})
+                {% endif %}
+            </p>
+        </div>
+        {% if patient %}
+        <a href="{{ url_for('pharmacist.prescriptions', patient_id=patient.patient_id) }}"
+           class="btn-clinical btn-clinical-secondary">← Back to Dispensing</a>
+        {% endif %}
+    </div>
+
+    <section class="dark-card clinical-form">
+        <h2>Select Sample Prescription</h2>
+        <p class="label-dim">Choose a test image from the project folder or upload your own file.</p>
+        <form method="post"
+              action="{{ url_for('pharmacist.sample_ocr', prescription_id=prescription.prescription_id) }}"
+              class="sample-ocr-form"
+              data-prescription-id="{{ prescription.prescription_id }}"
+              data-ocr-endpoint="{{ url_for('pharmacist.api_sample_ocr', prescription_id=prescription.prescription_id) }}">
+            <div class="form-row">
+                <label for="sample_file">Sample image</label>
+                <select id="sample_file" name="sample_file" required>
+                    <option value="">Choose a sample image...</option>
+                    {% for sample in sample_files %}
+                    <option value="{{ sample }}">{{ sample }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn-clinical btn-clinical-primary btn-clinical-sm"
+                    {% if not sample_files %}disabled{% endif %}>
+                Load &amp; Run OCR
+            </button>
+        </form>
+        {% if not sample_files %}
+        <p class="label-dim">Add images to the <code>test_prescriptions</code> folder.</p>
+        {% endif %}
+    </section>
+
+    <section class="dark-card clinical-form">
+        <h2>Upload Prescription Image</h2>
+        <form method="post" enctype="multipart/form-data"
+              action="{{ url_for('pharmacist.ocr_upload', prescription_id=prescription.prescription_id) }}">
+            <div class="form-row">
+                <label for="image">Prescription image (JPG, PNG, WEBP)</label>
+                <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp" required>
+            </div>
+            <button type="submit" class="btn-clinical btn-clinical-secondary">Decode with OCR</button>
+        </form>
+    </section>
+
+    {% if latest_ocr_text %}
+    <section class="dark-card clinical-form">
+        <h2>Latest OCR Result</h2>
+        <textarea rows="8" readonly class="ocr-readonly">{{ latest_ocr_text }}</textarea>
+        {% if patient %}
+        <a class="btn-clinical btn-clinical-primary btn-clinical-sm"
+           href="{{ url_for('pharmacist.prescriptions', patient_id=patient.patient_id, rx=prescription.prescription_id) }}">
+            Review &amp; Dispense
+        </a>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <section class="dark-card">
+        <h2>OCR History</h2>
+        {% if ocr_results %}
+            {% for result in ocr_results %}
+            <div style="margin-bottom: 1.25rem;">
+                <p class="label-dim">
+                    Decoded {{ result.decoded_at.strftime('%Y-%m-%d %H:%M') if result.decoded_at else (result.created_at.strftime('%Y-%m-%d %H:%M') if result.created_at else '') }}
+                    · Provider: {{ result.provider or '—' }}
+                </p>
+                <div class="ocr-text-block">{{ result.raw_text or result.extracted_text }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <p class="label-dim">No OCR results yet for this prescription.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/pharmacist_dispense.js') }}"></script>
+<style>
+.ocr-readonly {
+    width: 100%;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #e2e8f0;
+    padding: 0.75rem;
+    font-family: Consolas, monospace;
+    margin-bottom: 0.75rem;
+}
+</style>
+{% endblock %}

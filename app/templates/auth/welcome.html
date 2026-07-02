@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<section class="card auth-card">
+    <h1>Welcome, {{ current_user.full_name }}</h1>
+    <p class="subtitle">Your role dashboard ({{ current_user.role }}) will be available in a later development phase.</p>
+    <a class="btn btn-secondary" href="{{ url_for('auth.logout') }}">Logout</a>
+</section>
+{% endblock %}

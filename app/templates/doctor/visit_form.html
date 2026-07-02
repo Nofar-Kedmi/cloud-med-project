@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}New Visit — {{ patient.patient_id }}{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <p class="eyebrow">Clinical Encounter</p>
+        <h1>New Medical Visit</h1>
+        <p class="subtitle">
+            {{ patient.first_name }} {{ patient.last_name }}
+            · <code>{{ patient.patient_id }}</code>
+            {% if patient.date_of_birth %}· DOB {{ patient.date_of_birth.strftime('%Y-%m-%d') }}{% endif %}
+        </p>
+    </div>
+    <a class="btn btn-secondary" href="{{ url_for('doctor.create_new_visit') }}">Cancel</a>
+</section>
+
+<form method="post" action="{{ url_for('doctor.visit_save') }}" class="visit-form" id="visit-form">
+    <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+
+    <div class="form-layout">
+        <div class="form-main">
+            <section class="card card-elevated">
+                <div class="section-heading">
+                    <h2>Visit Details</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="visit_date">Visit Date *</label>
+                        <input type="date" id="visit_date" name="visit_date" required
+                               value="{{ form.get('visit_date', today) }}">
+                    </div>
+                    <div class="form-group span-2">
+                        <label for="symptoms">Symptoms *</label>
+                        <textarea id="symptoms" name="symptoms" rows="3" required
+                                  placeholder="Describe presenting symptoms...">{{ form.get('symptoms', '') }}</textarea>
+                    </div>
+                    <div class="form-group span-2">
+                        <label for="diagnosis">Diagnosis *</label>
+                        <textarea id="diagnosis" name="diagnosis" rows="2" required
+                                  placeholder="Primary diagnosis...">{{ form.get('diagnosis', '') }}</textarea>
+                    </div>
+                </div>
+                <div class="form-actions inline-actions">
+                    <button type="button" class="btn btn-teal" id="medical-research-btn">Medical Research</button>
+                    <span class="hint">Fetch recent clinical guidelines via Tavily</span>
+                </div>
+                <div id="research-results" class="research-panel hidden"></div>
+            </section>
+
+            <section class="card card-elevated">
+                <div class="section-heading">
+                    <h2>Vital Signs</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="blood_pressure">Blood Pressure</label>
+                        <input type="text" id="blood_pressure" name="blood_pressure"
+                               placeholder="120/80 mmHg"
+                               value="{{ form.get('blood_pressure', '') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="heart_rate">Heart Rate (bpm)</label>
+                        <input type="number" id="heart_rate" name="heart_rate" min="0"
+                               placeholder="72"
+                               value="{{ form.get('heart_rate', '') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="temperature">Temperature (°C)</label>
+                        <input type="number" id="temperature" name="temperature" step="0.1" min="30" max="45"
+                               placeholder="36.6"
+                               value="{{ form.get('temperature', '') }}">
+                    </div>
+                </div>
+            </section>
+
+            <section class="card card-elevated">
+                <div class="section-heading">
+                    <h2>Prescription</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group span-2">
+                        <label for="medication_name">Medication Name *</label>
+                        <input type="text" id="medication_name" name="medication_name" required
+                               placeholder="e.g. Amoxicillin"
+                               value="{{ form.get('medication_name', '') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="dosage">Dosage *</label>
+                        <input type="text" id="dosage" name="dosage" required
+                               placeholder="500 mg"
+                               value="{{ form.get('dosage', '') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="frequency">Frequency *</label>
+                        <input type="text" id="frequency" name="frequency" required
+                               placeholder="Twice daily"
+                               value="{{ form.get('frequency', '') }}">
+                    </div>
+                    <div class="form-group span-2">
+                        <label for="instructions">Instructions</label>
+                        <textarea id="instructions" name="instructions" rows="2"
+                                  placeholder="Take with food. Finish full course.">{{ form.get('instructions', '') }}</textarea>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <aside class="form-sidebar">
+            <section class="card card-elevated sidebar-card">
+                <h3>Patient Summary</h3>
+                <dl class="detail-list">
+                    <dt>ID</dt><dd><code>{{ patient.patient_id }}</code></dd>
+                    <dt>Name</dt><dd>{{ patient.first_name }} {{ patient.last_name }}</dd>
+                    <dt>Gender</dt><dd>{{ patient.gender or '—' }}</dd>
+                    <dt>Phone</dt><dd>{{ patient.phone or '—' }}</dd>
+                </dl>
+                <button type="submit" class="btn btn-primary btn-block">Save Visit &amp; Prescription</button>
+            </section>
+        </aside>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.MEDICAL_RESEARCH_URL = "{{ url_for('doctor.medical_research') }}";
+</script>
+<script src="{{ url_for('static', filename='js/visit_form.js') }}"></script>
+{% endblock %}

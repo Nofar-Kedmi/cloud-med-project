@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Create New Visit — Physician{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <p class="eyebrow">Clinical Encounter</p>
+        <h1>Create New Visit</h1>
+        <p class="subtitle">Select a patient to begin a new visit.</p>
+    </div>
+    <a class="btn btn-secondary" href="{{ url_for('doctor.dashboard') }}">Back to Dashboard</a>
+</section>
+
+<section class="card card-elevated">
+    <div class="section-heading">
+        <h2>All Patients</h2>
+        <span class="badge">{{ patients|length }} total</span>
+    </div>
+
+    {% if patients %}
+    <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="patient-filter">Search patients</label>
+        <input type="search" id="patient-filter"
+               placeholder="Filter by name, patient ID, or ID number..." autofocus>
+    </div>
+
+    <div class="table-wrap table-wrap-flat">
+        <table class="data-table" id="patients-table">
+            <thead>
+                <tr>
+                    <th>Patient ID</th>
+                    <th>ID Number</th>
+                    <th>Name</th>
+                    <th>Date of Birth</th>
+                    <th>Gender</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr>
+                    <td><code>{{ patient.patient_id }}</code></td>
+                    <td>{{ patient.id_number or '—' }}</td>
+                    <td>{{ patient.first_name }} {{ patient.last_name }}</td>
+                    <td>{{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else '—' }}</td>
+                    <td>{{ patient.gender or '—' }}</td>
+                    <td>
+                        <a class="btn btn-primary btn-sm"
+                           href="{{ url_for('doctor.visit_new', patient_id=patient.patient_id) }}">
+                            Start Visit
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="label-dim" id="no-results-message" hidden>No patients match your filter.</p>
+    {% else %}
+    <div class="empty-state compact">
+        <p>No patients in the system yet. Ask an administrator to register patients first.</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const filterInput = document.getElementById("patient-filter");
+    const table = document.getElementById("patients-table");
+    const emptyMessage = document.getElementById("no-results-message");
+    if (!filterInput || !table) return;
+
+    filterInput.addEventListener("input", function () {
+        const query = filterInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        table.querySelectorAll("tbody tr").forEach(function (row) {
+            const matches = !query || row.textContent.toLowerCase().includes(query);
+            row.hidden = !matches;
+            if (matches) visibleCount += 1;
+        });
+
+        if (emptyMessage) {
+            emptyMessage.hidden = visibleCount > 0;
+        }
+    });
+})();
+</script>
+{% endblock %}

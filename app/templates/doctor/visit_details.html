@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+
+
+{% block title %}Visit {{ visit.visit_id }}{% endblock %}
+
+
+
+{% block content %}
+
+<style>
+
+    :root {
+
+        --bg-dark: #0f172a;
+
+        --card-bg: #1e293b;
+
+        --border-color: #334155;
+
+        --text-white: #f8fafc;
+
+        --text-dim: #94a3b8;
+
+        --accent-blue: #38bdf8;
+
+        --accent-teal: #2dd4bf;
+
+    }
+
+
+
+    body { background-color: var(--bg-dark); color: var(--text-white); }
+
+
+
+    .visit-container { max-width: 900px; margin: auto; padding: 20px; }
+
+
+
+    .dark-card {
+
+        background-color: var(--card-bg);
+
+        border: 1px solid var(--border-color);
+
+        border-radius: 12px;
+
+        padding: 24px;
+
+        margin-bottom: 20px;
+
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+
+    }
+
+
+
+    h2, h4 { color: var(--accent-blue); margin-bottom: 15px; }
+
+    strong { color: var(--text-white); }
+
+    .label { color: var(--text-dim); }
+
+
+
+    .header-box {
+
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        margin-bottom: 30px;
+
+        gap: 1rem;
+
+        flex-wrap: wrap;
+
+    }
+
+
+
+    .btn-back {
+
+        background: var(--border-color);
+
+        color: white;
+
+        padding: 8px 16px;
+
+        border-radius: 6px;
+
+        text-decoration: none;
+
+    }
+
+
+
+    .btn-download {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 0.5rem;
+
+        background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+
+        color: #0f172a;
+
+        padding: 10px 18px;
+
+        border-radius: 8px;
+
+        text-decoration: none;
+
+        font-weight: 700;
+
+        margin-top: 12px;
+
+    }
+
+
+
+    .pdf-meta {
+
+        margin-top: 10px;
+
+        font-size: 0.9rem;
+
+        color: var(--text-dim);
+
+    }
+
+</style>
+
+
+
+<div class="visit-container">
+
+    <div class="header-box">
+
+        <div>
+
+            <p style="color: var(--accent-blue); font-size: 0.8rem;">CLINICAL ENCOUNTER</p>
+
+            <h1 style="margin: 5px 0;">Visit Record: <strong>{{ visit.visit_id }}</strong></h1>
+
+            <p class="label">Date: {{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else '—' }}</p>
+
+        </div>
+
+        <a href="{{ url_for('doctor.dashboard') }}" class="btn-back">← Back to Dashboard</a>
+
+    </div>
+
+
+
+    <section class="dark-card">
+
+        <h4>Patient Information</h4>
+
+        {% if patient %}
+
+            <p><span class="label">Name:</span> <strong>{{ patient.first_name }} {{ patient.last_name }}</strong></p>
+
+            <p><span class="label">Patient ID:</span> <strong>{{ patient.patient_id }}</strong></p>
+
+            <p><span class="label">National ID (Teudat Zehut):</span> <strong>{{ patient.id_number or '—' }}</strong></p>
+
+            <p><span class="label">Phone:</span> {{ patient.phone or '—' }}</p>
+
+            <p><span class="label">Email:</span> {{ patient.email or '—' }}</p>
+
+        {% else %}
+
+            <p>Patient information not found for this record.</p>
+
+        {% endif %}
+
+    </section>
+
+
+
+    <section class="dark-card">
+
+        <h2>Clinical Summary</h2>
+
+        <p><span class="label">Diagnosis:</span> <strong>{{ visit.diagnosis }}</strong></p>
+
+        <p><span class="label">Symptoms:</span> {{ visit.symptoms }}</p>
+
+        {% if visit.vitals %}
+
+        <p><span class="label">Blood Pressure:</span> {{ visit.vitals.get('blood_pressure') or '—' }}</p>
+
+        <p><span class="label">Heart Rate:</span> {{ visit.vitals.get('heart_rate') or '—' }}</p>
+
+        <p><span class="label">Temperature:</span> {{ visit.vitals.get('temperature') or '—' }}</p>
+
+        {% endif %}
+
+    </section>
+
+
+
+    <section class="dark-card" style="border: 1px solid var(--accent-blue);">
+
+        <h2>Prescription</h2>
+
+        {% if prescription %}
+
+            <p><span class="label">Prescription ID:</span> <strong>{{ prescription.prescription_id }}</strong></p>
+
+            <p><span class="label">Medication:</span> <strong>{{ prescription.medication_name }}</strong></p>
+
+            <p><span class="label">Dosage:</span> <strong>{{ prescription.dosage }}</strong></p>
+
+            <p><span class="label">Frequency:</span> {{ prescription.frequency }}</p>
+
+            <p><span class="label">Instructions:</span> {{ prescription.instructions or '—' }}</p>
+
+
+
+            {% if prescription.drive_file_url %}
+
+            <a href="{{ prescription.drive_file_url }}" target="_blank" rel="noopener noreferrer" class="btn-download">
+
+                Download PDF
+
+            </a>
+
+            <p class="pdf-meta">Stored in Google Drive{% if prescription.drive_file_id %} · File ID: {{ prescription.drive_file_id }}{% endif %}</p>
+
+            {% else %}
+
+            <p class="pdf-meta">No PDF has been uploaded for this prescription yet.</p>
+
+            {% endif %}
+
+        {% else %}
+
+            <p>No medication prescribed.</p>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}
+
+

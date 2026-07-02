@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block body_class %}clinical-dark{% endblock %}
+
+{% block title %}Dispensing — {{ patient.patient_id }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinical-dark.css') }}">
+
+<div class="clinical-container clinical-container-wide">
+    <div class="clinical-header">
+        <div>
+            <p class="clinical-eyebrow">Pharmacist Dashboard</p>
+            <h1>{{ patient.first_name }} {{ patient.last_name }}</h1>
+            <p class="clinical-subtitle">
+                Patient ID: <code>{{ patient.patient_id }}</code>
+                · ID Number: <strong>{{ patient.id_number or '—' }}</strong>
+            </p>
+        </div>
+        <a href="{{ url_for('pharmacist.search') }}" class="btn-clinical btn-clinical-secondary">← Back to Search</a>
+    </div>
+
+    <nav class="nav-tabs-clinical">
+        <a href="{{ url_for('pharmacist.search') }}">Patient Search</a>
+        <a href="{{ url_for('pharmacist.side_effects') }}">Side Effects</a>
+        <a href="{{ url_for('pharmacist.clinical_trials') }}">Clinical Trials</a>
+    </nav>
+
+    <section class="dark-card clinical-form">
+        <form method="post" action="{{ url_for('pharmacist.search') }}">
+            <div class="form-row">
+                <label for="patient_lookup">Find Another Patient</label>
+                <input type="search" id="patient_lookup" name="query"
+                       placeholder="Search by ID, First Name, or Last Name...">
+            </div>
+            <button type="submit" class="btn-clinical btn-clinical-secondary btn-clinical-sm">Search</button>
+        </form>
+    </section>
+
+    {% if prescriptions %}
+    <section class="dark-card">
+        <h2>Active Prescriptions</h2>
+        <p class="label-dim">Load a sample image for OCR verification, correct any misidentified text, then dispense.</p>
+    </section>
+
+    {% for rx in prescriptions %}
+    <section class="dark-card rx-dispense-card {% if active_rx == rx.prescription_id %}rx-dispense-card-active{% endif %}"
+             id="rx-{{ rx.prescription_id }}">
+        <div class="rx-card-header">
+            <div>
+                <p class="clinical-eyebrow">Prescription</p>
+                <h3><code>{{ rx.prescription_id }}</code></h3>
+            </div>
+            <span class="status-pill status-open">{{ rx.status|upper }}</span>
+        </div>
+
+        <div class="rx-detail-grid">
+            <div><span class="label-dim">Medication</span><strong>{{ rx.medication_name }}</strong></div>
+            <div><span class="label-dim">Dosage</span><strong>{{ rx.dosage }}</strong></div>
+            <div><span class="label-dim">Frequency</span><strong>{{ rx.frequency }}</strong></div>
+            {% if rx.drive_file_url %}
+            <div>
+                <span class="label-dim">Physician PDF</span>
+                <a class="text-link-clinical" href="{{ rx.drive_file_url }}" target="_blank" rel="noopener noreferrer">View PDF</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="rx-section-divider"></div>
+
+        <div class="rx-sample-row">
+            <form method="post"
+                  action="{{ url_for('pharmacist.sample_ocr', prescription_id=rx.prescription_id) }}"
+                  class="sample-ocr-form"
+                  data-prescription-id="{{ rx.prescription_id }}"
+                  data-ocr-endpoint="{{ url_for('pharmacist.api_sample_ocr', prescription_id=rx.prescription_id) }}">
+                <div class="form-row">
+                    <label for="sample_file_{{ rx.prescription_id }}">Select Sample Prescription</label>
+                    <select id="sample_file_{{ rx.prescription_id }}" name="sample_file" required>
+                        <option value="">Choose a sample image...</option>
+                        {% for sample in sample_files %}
+                        <option value="{{ sample }}">{{ sample }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn-clinical btn-clinical-secondary btn-clinical-sm"
+                        {% if not sample_files %}disabled{% endif %}>
+                    Load &amp; Run OCR
+                </button>
+            </form>
+            {% if not sample_files %}
+            <p class="label-dim">Add JPG/PNG images to the <code>test_prescriptions</code> folder.</p>
+            {% endif %}
+            <form class="manual-upload-form"
+                  data-prescription-id="{{ rx.prescription_id }}"
+                  data-upload-endpoint="{{ url_for('pharmacist.api_validate_and_ocr') }}">
+                <input type="file"
+                       name="image"
+                       class="manual-upload-input"
+                       accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                       hidden>
+                <button type="button"
+                        class="btn-clinical btn-clinical-secondary btn-clinical-sm manual-upload-trigger">
+                    Manual Upload
+                </button>
+            </form>
+        </div>
+
+        <form method="post"
+              action="{{ url_for('pharmacist.dispense_prescription', prescription_id=rx.prescription_id) }}"
+              class="dispense-form">
+            <div class="form-row">
+                <label for="medication_{{ rx.prescription_id }}">Medication Name (editable)</label>
+                <input type="text"
+                       id="medication_{{ rx.prescription_id }}"
+                       name="corrected_medication_name"
+                       value="{{ rx.medication_name }}"
+                       data-side-effects-input="{{ rx.prescription_id }}">
+            </div>
+
+            <div class="form-row">
+                <label for="ocr_{{ rx.prescription_id }}">OCR Result (editable)</label>
+                <textarea id="ocr_{{ rx.prescription_id }}"
+                          name="verified_ocr_text"
+                          rows="6"
+                          class="ocr-result-field"
+                          data-original-text="{{ ocr_original_by_rx.get(rx.prescription_id, '') | e }}"
+                          data-showing-original="false"
+                          placeholder="Load a sample prescription or upload an image to populate OCR text...">{{ ocr_text_by_rx.get(rx.prescription_id, '') }}</textarea>
+                {% if ocr_original_by_rx.get(rx.prescription_id) and ocr_original_by_rx.get(rx.prescription_id) != ocr_text_by_rx.get(rx.prescription_id, '') %}
+                <button type="button"
+                        class="ocr-toggle-original text-link-clinical"
+                        data-target="ocr_{{ rx.prescription_id }}">
+                    Show Original
+                </button>
+                {% else %}
+                <button type="button"
+                        class="ocr-toggle-original text-link-clinical"
+                        data-target="ocr_{{ rx.prescription_id }}"
+                        hidden>
+                    Show Original
+                </button>
+                {% endif %}
+            </div>
+
+            <div class="action-row rx-action-row">
+                <button type="button"
+                        class="btn-clinical btn-clinical-secondary btn-clinical-sm side-effects-btn"
+                        data-medication-input="medication_{{ rx.prescription_id }}">
+                    Check Side Effects
+                </button>
+                <button type="submit"
+                        class="btn-clinical btn-clinical-primary"
+                        onclick="return confirm('Mark this prescription as Dispensed?');">
+                    Dispense
+                </button>
+            </div>
+        </form>
+    </section>
+    {% endfor %}
+
+    {% else %}
+    <section class="dark-card">
+        {% if dispensed_prescriptions %}
+        <h2>No Open Prescriptions</h2>
+        <p class="label-dim">This patient has no open prescriptions ready for dispensing.</p>
+        {% else %}
+        <h2>No Active Prescriptions</h2>
+        <p class="label-dim">This patient has no open prescriptions and no dispensing history on record.</p>
+        {% endif %}
+    </section>
+
+    {% if dispensed_prescriptions %}
+    <section class="dark-card">
+        <h2>Recently Dispensed</h2>
+        <p class="label-dim">Previous medications dispensed for this patient.</p>
+        <div class="clinical-table-wrap">
+            <table class="clinical-table">
+                <thead>
+                    <tr>
+                        <th>Medication</th>
+                        <th>Dosage</th>
+                        <th>Frequency</th>
+                        <th>Dispensed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rx in dispensed_prescriptions %}
+                    <tr>
+                        <td><strong>{{ rx.medication_name or '—' }}</strong></td>
+                        <td>{{ rx.dosage or '—' }}</td>
+                        <td>{{ rx.frequency or '—' }}</td>
+                        <td>
+                            {% set dispensed_on = rx.dispensed_at or rx.updated_at or rx.created_at %}
+                            {% if dispensed_on and dispensed_on.strftime is defined %}
+                            Dispensed on: {{ dispensed_on.strftime('%Y-%m-%d') }}
+                            {% else %}
+                            Dispensed on: —
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+    {% endif %}
+</div>
+
+<div id="side-effects-modal" class="clinical-modal" hidden>
+    <div class="clinical-modal-backdrop" data-close-modal></div>
+    <div class="clinical-modal-panel" role="dialog" aria-modal="true" aria-labelledby="side-effects-title">
+        <div class="clinical-modal-header">
+            <h2 id="side-effects-title">Medication Side Effects</h2>
+            <button type="button" class="clinical-modal-close" data-close-modal aria-label="Close">&times;</button>
+        </div>
+        <div id="side-effects-body" class="clinical-modal-body">
+            <p class="label-dim">Loading clinical information...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/pharmacist_dispense.js') }}"></script>
+{% if active_rx %}
+<script>
+document.getElementById("rx-{{ active_rx }}")?.scrollIntoView({ behavior: "smooth", block: "start" });
+</script>
+{% endif %}
+{% endblock %}

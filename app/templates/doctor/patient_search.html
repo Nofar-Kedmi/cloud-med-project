@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Search — Physician{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <p class="eyebrow">Clinical Lookup</p>
+        <h1>Find a Patient</h1>
+        <p class="subtitle">Search by patient ID, name, or ID number.</p>
+    </div>
+    <a class="btn btn-secondary" href="{{ url_for('doctor.dashboard') }}">Back to Dashboard</a>
+</section>
+
+<section class="card card-elevated">
+    <form method="get" action="{{ url_for('doctor.search') }}" class="search-bar">
+        <input type="search" name="query" value="{{ query }}" placeholder="Search patient ID, name, or ID number..." autofocus>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+</section>
+
+{% if query %}
+<section class="card card-elevated">
+    <div class="section-heading">
+        <h2>Results for “{{ query }}”</h2>
+        <span class="badge">{{ patients|length }} found</span>
+    </div>
+
+    {% if patients %}
+    <div class="table-wrap table-wrap-flat">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Patient ID</th>
+                    <th>ID Number</th>
+                    <th>Name</th>
+                    <th>Date of Birth</th>
+                    <th>Gender</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr>
+                    <td><code>{{ patient.patient_id }}</code></td>
+                    <td>{{ patient.id_number }}</td>
+                    <td>{{ patient.first_name }} {{ patient.last_name }}</td>
+                    <td>{{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else '—' }}</td>
+                    <td>{{ patient.gender or '—' }}</td>
+                    <td>
+                        <a class="btn btn-primary btn-sm" href="{{ url_for('doctor.visit_new', patient_id=patient.patient_id) }}">Start Visit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state compact">
+        <p>No patients matched your search. Try a different name, ID number, or patient ID.</p>
+    </div>
+    {% endif %}
+</section>
+{% endif %}
+{% endblock %}

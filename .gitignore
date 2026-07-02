@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+ocr_service/ocr_venv/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Credentials and secrets
+credentials/
+google_vision_credentials.json
+credentials.json
+token.json
+*.json
+!credentials/.gitkeep
+
+uploads/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

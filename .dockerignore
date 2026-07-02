@@ -1,0 +1,14 @@
+venv/
+__pycache__/
+.env
+.git/
+google_vision_credentials.json
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.cursor/
+terminals/
+uploads/
+token.json
+credentials.json
+credentials/

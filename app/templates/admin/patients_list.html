@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Patients — Admin{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Patient Records</h1>
+        <p class="subtitle">Manage patient demographic information.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('admin.patient_new') }}">Add Patient</a>
+</section>
+
+{% if patients %}
+<div class="table-wrap">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Patient ID</th>
+                <th>ID Number</th>
+                <th>Name</th>
+                <th>Date of Birth</th>
+                <th>Gender</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in patients %}
+            <tr>
+                <td><code>{{ patient.patient_id }}</code></td>
+                <td>{{ patient.id_number or '—' }}</td>
+                <td>{{ patient.first_name }} {{ patient.last_name }}</td>
+                <td>{{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else '—' }}</td>
+                <td>{{ patient.gender or '—' }}</td>
+                <td>{{ patient.phone or '—' }}</td>
+                <td>{{ patient.email or '—' }}</td>
+                <td>
+                    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.patient_edit', patient_id=patient.patient_id) }}">Edit</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if pages > 1 %}
+<nav class="pagination">
+    {% if page > 1 %}
+    <a href="{{ url_for('admin.patients_list', page=page - 1) }}">Previous</a>
+    {% endif %}
+    <span>Page {{ page }} of {{ pages }}</span>
+    {% if page < pages %}
+    <a href="{{ url_for('admin.patients_list', page=page + 1) }}">Next</a>
+    {% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <p>No patients found.</p>
+    <a class="btn btn-primary" href="{{ url_for('admin.patient_new') }}">Add the first patient</a>
+</div>
+{% endif %}
+{% endblock %}

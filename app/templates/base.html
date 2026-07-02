@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Medical Information System{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    {% block header %}
+    <header class="site-header">
+        <div class="container header-inner">
+            <a class="brand" href="{{ url_for('index') }}">
+                <span class="brand-mark"></span>
+                <span>MediCloud Clinical</span>
+            </a>
+            {% if current_user.is_authenticated %}
+            <nav class="nav">
+                {% if current_user.role == 'admin' %}
+                <a href="{{ url_for('admin.patients_list') }}">Patients</a>
+                {% elif current_user.role == 'doctor' %}
+                <a href="{{ url_for('doctor.dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('doctor.search') }}">Patient Search</a>
+                {% elif current_user.role == 'pharmacist' %}
+                <a href="{{ url_for('pharmacist.search') }}">Patient Search</a>
+                <a href="{{ url_for('pharmacist.side_effects') }}">Side Effects</a>
+                <a href="{{ url_for('pharmacist.clinical_trials') }}">Clinical Trials</a>
+                {% endif %}
+                <span class="nav-user">{{ current_user.full_name }}</span>
+                <span class="role-badge role-{{ current_user.role }}">{{ current_user.role }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="nav-link-muted">Logout</a>
+            </nav>
+            {% endif %}
+        </div>
+    </header>
+    {% endblock %}
+
+    <main class="{% block main_class %}container{% endblock %}">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-group">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}{% if patient %}Edit Patient{% else %}Add Patient{% endif %} — Admin{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>{% if patient %}Edit Patient{% else %}Add Patient{% endif %}</h1>
+        <p class="subtitle">
+            {% if patient %}
+            Update demographics for {{ patient.patient_id }}.
+            {% else %}
+            Create a new patient record with demographic details.
+            {% endif %}
+        </p>
+    </div>
+    <a class="btn btn-secondary" href="{{ url_for('admin.patients_list') }}">Back to list</a>
+</section>
+
+<section class="card">
+    <form method="post" class="form">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="first_name">First Name *</label>
+                <input type="text" id="first_name" name="first_name" required
+                       value="{{ form.get('first_name') or (patient.first_name if patient else '') }}">
+           
+                       <div class="form-group">
+                        <label for="last_name">Last Name *</label>
+                        <input type="text" id="last_name" name="last_name" required
+                               value="{{ form.get('last_name') or (patient.last_name if patient else '') }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_number">ID Number *</label>
+                        <input type="text" id="id_number" name="id_number" required
+                               value="{{ form.get('id_number') or (patient.id_number if patient else '') }}">
+                    </div>
+           
+                </div>
+            <div class="form-group">
+                <label for="date_of_birth">Date of Birth *</label>
+                <input type="date" id="date_of_birth" name="date_of_birth" required
+                       value="{{ form.get('date_of_birth') or (patient.date_of_birth.strftime('%Y-%m-%d') if patient and patient.date_of_birth else '') }}">
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender *</label>
+                <select id="gender" name="gender" required>
+                    {% set selected_gender = form.get('gender') or (patient.gender if patient else '') %}
+                    <option value="">Select gender</option>
+                    <option value="male" {% if selected_gender == 'male' %}selected{% endif %}>Male</option>
+                    <option value="female" {% if selected_gender == 'female' %}selected{% endif %}>Female</option>
+                    <option value="other" {% if selected_gender == 'other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="tel" id="phone" name="phone"
+                       value="{{ form.get('phone') or (patient.phone if patient else '') }}">
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email"
+                       value="{{ form.get('email') or (patient.email if patient else '') }}">
+            </div>
+        </div>
+
+        <fieldset class="fieldset">
+            <legend>Address</legend>
+            <div class="form-grid">
+                <div class="form-group span-2">
+                    <label for="street">Street</label>
+                    <input type="text" id="street" name="street"
+                           value="{{ form.get('street') or (patient.address.street if patient and patient.address else '') }}">
+                </div>
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city"
+                           value="{{ form.get('city') or (patient.address.city if patient and patient.address else '') }}">
+                </div>
+                <div class="form-group">
+                    <label for="state">State</label>
+                    <input type="text" id="state" name="state"
+                           value="{{ form.get('state') or (patient.address.state if patient and patient.address else '') }}">
+                </div>
+                <div class="form-group">
+                    <label for="zip">ZIP Code</label>
+                    <input type="text" id="zip" name="zip"
+                           value="{{ form.get('zip') or (patient.address.zip if patient and patient.address else '') }}">
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                {% if patient %}Save Changes{% else %}Create Patient{% endif %}
+            </button>
+            <a class="btn btn-secondary" href="{{ url_for('admin.patients_list') }}">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

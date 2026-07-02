@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Physician Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    /* Dark Mode Global Styles */
+    :root {
+        --bg-color: #0b1121;
+        --card-bg: #111b2d;
+        --accent-blue: #38bdf8;
+        --text-white: #f8fafc;
+        --text-dim: #94a3b8;
+    }
+    body { background-color: var(--bg-color) !important; color: var(--text-white) !important; }
+
+    /* Profile Header */
+    .doctor-profile-card {
+        display: flex; align-items: center; gap: 20px;
+        background: var(--card-bg); padding: 25px; border-radius: 16px;
+        border: 1px solid #1e293b; margin-bottom: 30px;
+    }
+    .doctor-avatar {
+        width: 70px; height: 70px; border-radius: 12px;
+        background: var(--accent-blue); display: flex; align-items: center;
+        justify-content: center; color: white; font-size: 24px;
+        overflow: hidden; 
+    }
+    .doctor-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Stats Grid */
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+    .stat-card { background: var(--card-bg) !important; border: 1px solid #1e293b !important; padding: 20px; border-radius: 16px; }
+    .stat-value { color: var(--accent-blue) !important; font-size: 1.5rem; }
+    .stat-label { color: var(--text-dim); display: block; }
+
+    /* Table Fixes */
+    .card-elevated { background: var(--card-bg) !important; border: 1px solid #1e293b !important; padding: 20px; border-radius: 16px; }
+    .data-table { width: 100%; border-collapse: collapse; color: white; }
+    .data-table th { color: var(--text-dim) !important; text-align: left; padding: 12px; }
+    .data-table td { color: var(--text-white) !important; padding: 12px; border-top: 1px solid #1e293b; }
+    .text-link { color: var(--accent-blue) !important; font-weight: 600; text-decoration: none; }
+</style>
+
+<section class="doctor-profile-card">
+    <div class="doctor-avatar">
+        <img src="https://meddoc.ie/wp-content/uploads/Male-doctor-1-947x1024-800x865.jpg" alt="Dr. Smith" />
+    </div>
+    <div>
+        <h1 style="margin: 0; color: white;">Good day, Dr. Smith</h1>
+        <p style="color: var(--text-dim); margin: 5px 0;">Provider ID: PHY-A212 | Session active</p>
+    </div>
+</section>
+
+<div class="stat-grid">
+    <article class="stat-card">
+        <span class="stat-label">Session Status</span>
+        <strong class="stat-value">Active</strong>
+    </article>
+    <article class="stat-card">
+        <span class="stat-label">Total Visits</span>
+        <strong class="stat-value">{{ visit_count }}</strong>
+    </article>
+    <article class="stat-card">
+        <span class="stat-label">Prescriptions</span>
+        <strong class="stat-value">{{ prescription_count }}</strong>
+    </article>
+</div>
+
+<section class="card card-elevated">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: white; margin: 0;">Recent Clinical Visits</h2>
+        <a href="{{ url_for('doctor.create_new_visit') }}" class="text-link">+ Start new visit</a>
+    </div>
+    
+    {% if recent_visits %}
+    <table class="data-table">
+        <thead>
+            <tr><th>Visit ID</th><th>Patient</th><th>Diagnosis</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+            {% for visit in recent_visits %}
+            <tr>
+                <td><a href="{{ url_for('doctor.visit_details', visit_id=visit.visit_id) }}" class="text-link"><code>{{ visit.visit_id }}</code></a></td>
+                <td>
+                    {% if visit.patient_name %}
+                    <strong>{{ visit.patient_name }}</strong>
+                    <span style="color: var(--text-dim); font-size: 0.85rem; display: block;">
+                        <code>{{ visit.patient_id }}</code>
+                    </span>
+                    {% else %}
+                    <code>{{ visit.patient_id }}</code>
+                    {% endif %}
+                </td>
+                <td>{{ visit.diagnosis }}</td>
+                <td>{{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else '—' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--text-dim);">No visits recorded yet.</p>
+    {% endif %}
+</section>
+{% endblock %}

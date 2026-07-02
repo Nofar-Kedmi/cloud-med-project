@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block body_class %}clinical-dark{% endblock %}
+
+{% block title %}Clinical Trials Search{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinical-dark.css') }}">
+
+<div class="clinical-container">
+    <div class="clinical-header">
+        <div>
+            <p class="clinical-eyebrow">Research Lookup</p>
+            <h1>ClinicalTrials.gov</h1>
+            <p class="clinical-subtitle">Search trials by condition, symptom, or research topic.</p>
+        </div>
+    </div>
+
+    <nav class="nav-tabs-clinical">
+        <a href="{{ url_for('pharmacist.search') }}">Patient Search</a>
+        <a href="{{ url_for('pharmacist.side_effects') }}">Side Effects</a>
+        <a href="{{ url_for('pharmacist.clinical_trials') }}" class="active">Clinical Trials</a>
+    </nav>
+
+    <section class="dark-card clinical-form">
+        <form method="get" action="{{ url_for('pharmacist.clinical_trials') }}">
+            <div class="form-row">
+                <label for="query">Search query</label>
+                <input type="text" id="query" name="query" value="{{ query }}"
+                       placeholder="e.g. diabetes, chronic cough" required>
+            </div>
+            <div class="form-row">
+                <label for="type">Search type</label>
+                <select id="type" name="type">
+                    <option value="condition" {% if search_type == 'condition' %}selected{% endif %}>By condition / symptom</option>
+                    <option value="term" {% if search_type == 'term' %}selected{% endif %}>General term</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-clinical btn-clinical-primary">Search Trials</button>
+        </form>
+    </section>
+
+    {% if payload %}
+    <section class="dark-card">
+        <h2>Results for “{{ payload.query }}”</h2>
+        {% if payload.error %}
+        <p class="label-dim">{{ payload.error }}</p>
+        {% elif payload.studies %}
+            {% for study in payload.studies %}
+            <div class="trial-item">
+                <a href="https://clinicaltrials.gov/study/{{ study.nct_id }}" target="_blank" rel="noopener noreferrer">
+                    {{ study.title }}
+                </a>
+                <p class="label-dim">
+                    {{ study.nct_id }} · {{ study.status }}
+                    {% if study.phase %} · {{ study.phase }}{% endif %}
+                </p>
+                {% if study.conditions %}
+                <p>{{ study.conditions }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+        <p class="label-dim">No trials found.</p>
+        {% endif %}
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

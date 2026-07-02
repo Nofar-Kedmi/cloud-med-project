@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block body_class %}login-page{% endblock %}
+{% block header %}{% endblock %}
+{% block main_class %}login-shell{% endblock %}
+
+{% block title %}Sign In — MediCloud Clinical{% endblock %}
+
+{% block content %}
+<div class="login-panel">
+    <div class="login-brand">
+        <div class="brand-mark brand-mark-lg"></div>
+        <h1>MediCloud Clinical</h1>
+        <p>Secure access to patient records, clinical visits, and prescription workflows.</p>
+    </div>
+
+    <section class="login-card card-elevated">
+        <h2>Welcome back</h2>
+        <p class="subtitle">Sign in with your assigned clinical role account.</p>
+
+        <form method="post" class="form">
+            <div class="form-group">
+                <label for="email">Email address</label>
+                <input type="email" id="email" name="email" placeholder="you@medical.local" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <label class="checkbox">
+                <input type="checkbox" name="remember"> Keep me signed in on this device
+            </label>
+            <button type="submit" class="btn btn-primary btn-block">Sign in securely</button>
+        </form>
+    </section>
+</div>
+{% endblock %}

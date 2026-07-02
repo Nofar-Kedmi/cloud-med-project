@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block body_class %}clinical-dark{% endblock %}
+
+{% block title %}Patient Search — Pharmacist{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinical-dark.css') }}">
+
+<div class="clinical-container">
+    <div class="clinical-header">
+        <div>
+            <p class="clinical-eyebrow">Pharmacy Workspace</p>
+            <h1>Find Patient</h1>
+            <p class="clinical-subtitle">Search by ID number, first name, or last name to view active prescriptions.</p>
+        </div>
+    </div>
+
+    <nav class="nav-tabs-clinical">
+        <a href="{{ url_for('pharmacist.search') }}" class="active">Patient Search</a>
+        <a href="{{ url_for('pharmacist.side_effects') }}">Side Effects</a>
+        <a href="{{ url_for('pharmacist.clinical_trials') }}">Clinical Trials</a>
+    </nav>
+
+    <section class="dark-card clinical-form">
+        <form method="post" action="{{ url_for('pharmacist.search') }}">
+            <div class="form-row">
+                <label for="query">Patient Lookup</label>
+                <input type="search" id="query" name="query" value="{{ query }}"
+                       placeholder="Search by ID, First Name, or Last Name..." required autofocus>
+            </div>
+            <button type="submit" class="btn-clinical btn-clinical-primary">Search Patient</button>
+        </form>
+    </section>
+
+    {% if query %}
+    <section class="dark-card">
+        <div class="section-heading-inline">
+            <h2>Search Results</h2>
+            {% if patients %}
+            <span class="badge-clinical">{{ patients|length }} match{{ 'es' if patients|length != 1 else '' }}</span>
+            {% endif %}
+        </div>
+
+        {% if patients %}
+        {% if patients|length > 1 %}
+        <p class="label-dim">Multiple patients matched your search. Select the correct patient below.</p>
+        {% endif %}
+        <div class="clinical-table-wrap">
+            <table class="clinical-table">
+                <thead>
+                    <tr>
+                        <th>ID Number</th>
+                        <th>Patient ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Phone</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                    <tr>
+                        <td><strong>{{ patient.id_number or '—' }}</strong></td>
+                        <td><code>{{ patient.patient_id }}</code></td>
+                        <td>{{ patient.first_name }}</td>
+                        <td>{{ patient.last_name }}</td>
+                        <td>{{ patient.phone or '—' }}</td>
+                        <td>
+                            <a class="btn-clinical btn-clinical-primary btn-clinical-sm"
+                               href="{{ url_for('pharmacist.prescriptions', patient_id=patient.patient_id) }}">
+                                Select Patient
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="label-dim">No matching patients for "{{ query }}". Try a different ID number or name.</p>
+        {% endif %}
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
