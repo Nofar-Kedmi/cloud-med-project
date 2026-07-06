@@ -16,6 +16,10 @@ from flask_login import current_user, login_required
 from PIL import Image, UnidentifiedImageError
 from werkzeug.utils import secure_filename
 
+# הנחה: כאן יש לייבא את send_message מהמודול הרלוונטי
+# מהדוגמה שלך לא ברור מאיפה היא מגיעה, אז ודא שהיא מיובאת כאן
+from app.services.messaging_service import send_message 
+
 from app.middleware.rbac import role_required
 from app.services.document_validation_service import validate_prescription_document
 from app.services.clinicaltrials_service import search_clinical_trials
@@ -251,6 +255,10 @@ def dispense_prescription(prescription_id):
             verified_ocr_text=verified_ocr_text or None,
             pharmacist_id=current_user.get_id(),
         )
+        
+        # התוספת המבוקשת
+        send_message('medication-monitoring', {'med_name': 'Aspirin', 'status': 'checked'})
+        
         flash(f"Prescription {prescription_id} marked as Dispensed.", "success")
     except PrescriptionNotFoundError:
         flash("Prescription not found.", "danger")
